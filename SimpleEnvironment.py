@@ -32,22 +32,29 @@ class SimpleEnvironment(object):
         #
         # TODO: Generate and return a random configuration
         #
-        config = numpy.random.uniform(lower_limits,upper_limits,2)
 
-        
+
+        while True:          
+            config = numpy.random.uniform(lower_limits,upper_limits,2)
+            T = self.robot.GetTransform()            # T = numpy.eye(4)
+            T[0,3] = config[0]
+            T[1,3] = config[1]
+            self.robot.SetTransform(T)    
+
+            if self.robot.GetEnv().CheckCollision(self.robot) ==False:
+                break         
+
         return numpy.array(config)
+        # return config
 
     def ComputeDistance(self, start_config, end_config):
         #
         # TODO: Implement a function which computes the distance between
         # two configurations
         #
-        start_x = start_config[0]
-        start_y = start_config[1]
-        goal_x = goal_config[0]
-        goal_y = goal_config[1]
-        distance = math.sqrt(pow(goal_x-start_x,2)+pow(goal_y-start_y,2))
-        pass
+        distance = numpy.linalg.norm(start_config-end_config)
+        return distance
+        # pass
 
     def Extend(self, start_config, end_config):
         
@@ -56,33 +63,43 @@ class SimpleEnvironment(object):
         #   a start configuration to a goal configuration
         #
 
-        epsilon = 0.1
-        i=0
-        print(start_config)
-        print(end_config)
-        print('------------')
-        extend_config = start_config
+        step_count = 20
+        # print(start_config)
+        # print(end_config)
+        # print('------------')
+        # extend_config = start_config
         final_config = None
         lower_limits, upper_limits = self.boundary_limits
 
-        while True:
-            extend_config = start_config + (end_config-start_config)*epsilon
-            # print(extend_config[0])
-            T = numpy.eye(4)
-            T[0,3] = extend_config[0]
-            T[1,3] = extend_config[1]
-            self.robot.SetTransform(T)    
-            check = self.robot.GetEnv().CheckCollision(self.robot)        
+        diff = end_config-start_config
+        step = diff/step_count
+           
+        # print('step count is',step)
+        i=1
+        while i<step_count:
 
-            if check == True or abs(extend_config[0] - end_config[0]) < 1e-10 or (extend_config[0]<lower_limits[0] and extend_config[1]<lower_limits[1]) or (extend_config[0]>upper_limits[0] and extend_config[1]>upper_limits[1]) :
+            extend_config = start_config + step
+
+            if  numpy.less(extend_config ,lower_limits).any()==True or numpy.greater(extend_config ,upper_limits).any()==True:
                 break
+            # print(diff*epsilon)
+
+            T = self.robot.GetTransform()
+            T[0,3] = extend_config[0]
+            T[1,3] = extend_config[1]             
+            self.robot.SetTransform(T)    
+            check = self.robot.GetEnv().CheckCollision(self.robot) 
+
+            if check == True:
+                break
+
             start_config = extend_config
-            final_config = extend_config    
+            final_config = extend_config   
 
-        print('done with extend')
+            i+=1
 
+        # print('done with extend')
         return final_config
-
         # pass
 
     def ShortenPath(self, path, timeout=5.0):
@@ -127,4 +144,5 @@ class SimpleEnvironment(object):
                 [sconfig[1], econfig[1]],
                 'k.-', linewidth=2.5)
         pl.draw()
+        pl.pause(0.2)    
 

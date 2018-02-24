@@ -20,7 +20,7 @@ class RRTTree(object):
 
         vid, vdist = min(enumerate(dists), key=operator.itemgetter(1))
 
-        return vid, self.vertices[vid]
+        return vid, self.vertices[vid] 
             
 
     def AddVertex(self, config):

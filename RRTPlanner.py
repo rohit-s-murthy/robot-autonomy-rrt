@@ -24,12 +24,46 @@ class RRTPlanner(object):
         plan.append(start_config)
         plan.append(goal_config)
 
+        extend_config = start_config
+
+        goal_bias = 0.2
+
+        i=1
+
         #print(start_config)
         #print(goal_config)
 
-        new_vertex = self.planning_env.GenerateRandomConfiguration()
-        v1,v2 = self.RRTTree.GetNearestVertex(new_vertex)
+        while True:
+            if i%20==0:
+                random_config = goal_config
+            else:
+                random_config = self.planning_env.GenerateRandomConfiguration()
+            # print('random config is ',random_config)
+            i+=1
 
-        print(v1)
-        print(v2)
+            near_config_index,near_config = tree.GetNearestVertex(random_config)
+            goal_near_config_index,goal_near_config = tree.GetNearestVertex(goal_config)
+
+            #extra check to get closer to goal
+
+            if numpy.linalg.norm(goal_near_config-goal_config)<=numpy.linalg.norm(near_config-random_config):
+                random_config = goal_config
+                near_config = goal_near_config
+            # print('near config is ',near_config)
+            extend_config = self.planning_env.Extend(near_config,random_config)
+            # print('extend config is ',extend_config)
+            if extend_config==None:
+                continue
+            end_config_index  =  tree.AddVertex(extend_config)
+            # print('vertices are ',tree.vertices)            
+            tree.AddEdge(near_config_index, end_config_index)
+            self.planning_env.PlotEdge(near_config, extend_config)
+            
+            if numpy.linalg.norm(extend_config-goal_config) <=epsilon:
+                break
+
+            
+
+
+
         return plan
