@@ -27,11 +27,7 @@ class RRTPlanner(object):
         extend_config = start_config
 
         goal_bias = 0.2
-
         i=1
-
-        #print(start_config)
-        #print(goal_config)
 
         while True:
             if i%20==0:
