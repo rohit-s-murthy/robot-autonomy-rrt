@@ -21,30 +21,32 @@ class RRTPlanner(object):
         #  of dimension k x n where k is the number of waypoints
         #  and n is the dimension of the robots configuration space
         
-        plan.append(start_config)
-        plan.append(goal_config)
+        # plan.append(start_config)
+        # plan.append(goal_config)
 
         extend_config = start_config
 
-        goal_bias = 0.2
+        goal_bias = 0.1
         i=1
 
         while True:
-            if i%20==0:
-                random_config = goal_config
-            else:
-                random_config = self.planning_env.GenerateRandomConfiguration()
+            # if i%20==0:
+            #     random_config = goal_config
+            # else:
+            #     random_config = self.planning_env.GenerateRandomConfiguration()
             # print('random config is ',random_config)
-            i+=1
+            
 
+            random_config = self.planning_env.GenerateRandomConfiguration()
             near_config_index,near_config = tree.GetNearestVertex(random_config)
+
             goal_near_config_index,goal_near_config = tree.GetNearestVertex(goal_config)
-
-            #extra check to get closer to goal
-
-            if numpy.linalg.norm(goal_near_config-goal_config)<=numpy.linalg.norm(near_config-random_config):
+            # check to get closer to goal
+            if numpy.linalg.norm(goal_near_config-goal_config)<=numpy.linalg.norm(near_config-random_config) or i%10==0:
                 random_config = goal_config
                 near_config = goal_near_config
+
+            i+=1
             # print('near config is ',near_config)
             extend_config = self.planning_env.Extend(near_config,random_config)
             # print('extend config is ',extend_config)
@@ -58,8 +60,42 @@ class RRTPlanner(object):
             if numpy.linalg.norm(extend_config-goal_config) <=epsilon:
                 break
 
-            
+        print(tree.edges)
+        # j = goal_config
+        
+        # while True:
+        #     prev = 
+        print('----------------')     
+        # print(tree.edges[len(tree.edges)])
+        # print('----------------')     
+        # print(tree.vertices[tree.edges[len(tree.edges)]])
+        # print(lastkey)
+        # print(tree.edges[lastkey])
+        # tree.vertices[prevkey]
+        lastkey = len(tree.edges)
+        print(lastkey)
 
+        plan_index = []
+        plan_index.append(lastkey)
 
+        while True:
+            prevkey = tree.edges[lastkey]
+            plan_index.append(prevkey)
+            print(prevkey)
+
+            if prevkey == 0:
+                break
+
+            lastkey = prevkey
+        print('----------')
+        print (plan_index)
+        plan_index.sort()
+        print(plan_index)
+        print('----------')
+
+        for i in range(len(plan_index)):
+            plan.append(tree.vertices[plan_index[i]])
+
+        print(plan)
 
         return plan

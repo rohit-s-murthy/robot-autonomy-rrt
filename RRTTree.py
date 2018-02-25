@@ -29,5 +29,8 @@ class RRTTree(object):
         return vid
 
     def AddEdge(self, sid, eid):
+        # print(eid)
+        # print('---')
+        # print(sid)
         self.edges[eid] = sid
 
